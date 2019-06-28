@@ -45,6 +45,37 @@ def getUChar(data,index):
   result =  data[index] & 0xFF
   return result
 
+## Get TCS Data
+def readTCSAll():
+  avgr = 0
+  avgg = 0
+  avgb = 0
+  avgc = 0
+  count = 0
+  while (count < 130):
+    tcs = Adafruit_TCS34725.TCS34725()
+    r, g, b, c = tcs.get_raw_data()
+    avgr = avgr + r
+    avgg = avgg + g
+    avgb = avgb + b
+    avgc = avgc + c
+    count = count + 1
+    tcs.disable()
+  avgr = avgr/130
+  avgg = avgg/130
+  avgb = avgb/130
+  avgc = avgc/130
+  r = float(avgr)
+  g = float(avgg)
+  b = float(avgb)
+  c = float(avgc)
+  lux = float(Adafruit_TCS34725.calculate_lux(r, g, b))
+  color_temp = Adafruit_TCS34725.calculate_color_temperature(r, g, b)
+  if color_temp is None:
+    color_temp = 0
+  color_temp = float(color_temp)
+  return r,g,b,c,lux,color_temp
+
 def readBME280ID(addr=DEVICE):
   # Chip ID Register Address
   REG_ID     = 0xD0
@@ -154,41 +185,6 @@ def readBME280All(addr=DEVICE):
 
 ## End BME
 
-## Collect and Store BME Data
-(airtemp,airpressure,airhumidity) = readBME280All(addr=DEVICE)
-
-## Get TCS Data
-avgr = 0
-avgg = 0
-avgb = 0
-avgc = 0
-count = 0
-while (count < 130):
-  tcs = Adafruit_TCS34725.TCS34725()
-  r, g, b, c = tcs.get_raw_data()
-  avgr = avgr + r
-  avgg = avgg + g
-  avgb = avgb + b
-  avgc = avgc + c
-  count = count + 1
-  tcs.disable()
-avgr = avgr/130
-avgg = avgg/130
-avgb = avgb/130
-avgc = avgc/130
-r = float(avgr)
-g = float(avgg)
-b = float(avgb)
-c = float(avgc)
-lux = float(Adafruit_TCS34725.calculate_lux(r, g, b))
-color_temp = Adafruit_TCS34725.calculate_color_temperature(r, g, b)
-if color_temp is None:
- 	color_temp = 0
-color_temp = float(color_temp)
-
-## End TCS Read
-
-
 deviceId = "17f83c9b-e31c-4e11-8b9c-1b89ee99e714"
 scopeId = "0ne00062CC3"
 deviceKey = "V4sxmvey5dA5PBNqtCatp5uUZn/JwppsfIfZXdusocc="
@@ -220,21 +216,38 @@ iotc.on("MessageSent", onmessagesent)
 iotc.on("Command", oncommand)
 iotc.on("SettingsUpdated", onsettingsupdated)
 
+# Start by Connecting then Sending
 iotc.connect()
-
+(airtemp,airpressure,airhumidity) = readBME280All(addr=DEVICE)
+(r,g,b,c,lux,color_temp) = readTCSAll()
+iotc.sendTelemetry("{ \
+\"airtemperature\": " + airtemp + ", \
+\"airpressure\": " + airpressure + ", \
+\"airhumidity\": " + airhumidity + ", \
+\"lux\": " + lux + ", \
+\"colortemp\": " + color_temp + ", \
+\"green\": " + g + ", \
+\"blue\": " + b + ", \
+\"clear\": " + c + ", \
+\"red\": " + r + "}")
+starttime = time.time()
 while iotc.isConnected():
-  starttime = time.time()
   iotc.doNext() # do the async work needed to be done for MQTT
   elapsedtime = time.time() - starttime
   if elapsedtime > 3660:
    print("Sending telemetry..")
+   ## Collect Telemetry Data
+   (airtemp,airpressure,airhumidity) = readBME280All(addr=DEVICE)
+   (r,g,b,c,lux,color_temp) = readTCSAll()
    elapsedtime = 0
+   starttime = time.time()
    iotc.sendTelemetry("{ \
-\"airtemperature\": " + str(randint(20, 45)) + ", \
-\"airpressure\": " + str(randint(2, 15)) + ", \
-\"airhumidity\": " + str(randint(3, 9)) + ", \
-\"lux\": " + str(randint(20, 45)) + ", \
-\"colortemp\": " + str(randint(2, 15)) + ", \
-\"green\": " + str(randint(3, 9)) + ", \
-\"blue\": " + str(randint(3, 9)) + ", \
-\"red\": " + str(randint(1, 4)) + "}")
+\"airtemperature\": " + airtemp + ", \
+\"airpressure\": " + airpressure + ", \
+\"airhumidity\": " + airhumidity + ", \
+\"lux\": " + lux + ", \
+\"colortemp\": " + color_temp + ", \
+\"green\": " + g + ", \
+\"blue\": " + b + ", \
+\"clear\": " + c + ", \
+\"red\": " + r + "}")
