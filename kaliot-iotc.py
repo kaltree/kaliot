@@ -4,6 +4,7 @@
 import iotc
 from iotc import IOTConnectType, IOTLogLevel
 from random import randint
+import time
 
 # BME280 - Temp, Pressure, Humidity - Headers
 import smbus
@@ -163,14 +164,14 @@ avgb = 0
 avgc = 0
 count = 0
 while (count < 130):
- 	tcs = Adafruit_TCS34725.TCS34725()
+  tcs = Adafruit_TCS34725.TCS34725()
   r, g, b, c = tcs.get_raw_data()
   avgr = avgr + r
   avgg = avgg + g
   avgb = avgb + b
   avgc = avgc + c
   count = count + 1
-	tcs.disable()
+  tcs.disable()
 avgr = avgr/130
 avgg = avgg/130
 avgb = avgb/130
@@ -222,9 +223,12 @@ iotc.on("SettingsUpdated", onsettingsupdated)
 iotc.connect()
 
 while iotc.isConnected():
+  starttime = time.time()
   iotc.doNext() # do the async work needed to be done for MQTT
-  if gCanSend == True:
+  elapsedtime = time.time() - starttime
+  if elapsedtime > 3660:
    print("Sending telemetry..")
+   elapsedtime = 0
    iotc.sendTelemetry("{ \
 \"airtemperature\": " + str(randint(20, 45)) + ", \
 \"airpressure\": " + str(randint(2, 15)) + ", \
