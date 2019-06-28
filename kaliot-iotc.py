@@ -232,9 +232,10 @@ iotc.sendTelemetry("{ \
 \"red\": " + str(r) + "}")
 starttime = time.time()
 while iotc.isConnected():
+  time.sleep(5)
   iotc.doNext() # do the async work needed to be done for MQTT
   elapsedtime = time.time() - starttime
-  if elapsedtime > 3660:
+  if elapsedtime > 66:
    print("Sending telemetry..")
    ## Collect Telemetry Data
    (airtemp,airpressure,airhumidity) = readBME280All(addr=DEVICE)
