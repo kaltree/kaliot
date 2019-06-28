@@ -221,15 +221,15 @@ iotc.connect()
 (airtemp,airpressure,airhumidity) = readBME280All(addr=DEVICE)
 (r,g,b,c,lux,color_temp) = readTCSAll()
 iotc.sendTelemetry("{ \
-\"airtemperature\": " + airtemp + ", \
-\"airpressure\": " + airpressure + ", \
-\"airhumidity\": " + airhumidity + ", \
-\"lux\": " + lux + ", \
-\"colortemp\": " + color_temp + ", \
-\"green\": " + g + ", \
-\"blue\": " + b + ", \
-\"clear\": " + c + ", \
-\"red\": " + r + "}")
+\"airtemperature\": " + str(airtemp) + ", \
+\"airpressure\": " + str(airpressure) + ", \
+\"airhumidity\": " + str(airhumidity) + ", \
+\"lux\": " + str(lux) + ", \
+\"colortemp\": " + str(color_temp) + ", \
+\"green\": " + str(g) + ", \
+\"blue\": " + str(b) + ", \
+\"clear\": " + str(c) + ", \
+\"red\": " + str(r) + "}")
 starttime = time.time()
 while iotc.isConnected():
   iotc.doNext() # do the async work needed to be done for MQTT
@@ -242,12 +242,12 @@ while iotc.isConnected():
    elapsedtime = 0
    starttime = time.time()
    iotc.sendTelemetry("{ \
-\"airtemperature\": " + airtemp + ", \
-\"airpressure\": " + airpressure + ", \
-\"airhumidity\": " + airhumidity + ", \
-\"lux\": " + lux + ", \
-\"colortemp\": " + color_temp + ", \
-\"green\": " + g + ", \
-\"blue\": " + b + ", \
-\"clear\": " + c + ", \
-\"red\": " + r + "}")
+\"airtemperature\": " + str(airtemp) + ", \
+\"airpressure\": " + str(airpressure) + ", \
+\"airhumidity\": " + str(airhumidity) + ", \
+\"lux\": " + str(lux) + ", \
+\"colortemp\": " + str(color_temp) + ", \
+\"green\": " + str(g) + ", \
+\"blue\": " + str(b) + ", \
+\"clear\": " + str(c) + ", \
+\"red\": " + str(r) + "}")
